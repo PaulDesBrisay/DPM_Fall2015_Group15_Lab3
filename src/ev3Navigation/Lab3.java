@@ -3,7 +3,6 @@ package ev3Navigation;
 import ev3Navigation.Odometer;
 import ev3Navigation.OdometryDisplay;
 import ev3Navigation.Navigator;
-import ev3Odometer.SquareDriver;
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
