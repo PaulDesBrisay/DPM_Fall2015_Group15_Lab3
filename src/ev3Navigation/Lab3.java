@@ -34,7 +34,7 @@ public class Lab3 {
 		
 	    Odometer odometer = new Odometer(leftMotor, rightMotor,
 				WHEEL_RADIUS, TRACK);
-	    Navigator navigator = new Navigator(odometer, leftMotor, rightMotor,
+	    final Navigator navigator = new Navigator(odometer, leftMotor, rightMotor,
 	    		WHEEL_RADIUS, TRACK);
 	
 		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t);
@@ -59,11 +59,15 @@ public class Lab3 {
 		
 		//Initial waypoint program
 		if (buttonChoice == Button.ID_LEFT) {
+			(new Thread() {
+				public void run() {
 					navigator.travelTo(60, 30);
 					navigator.travelTo(30, 30);
 					navigator.travelTo(30, 60);
 					navigator.travelTo(60, 0);
-			
+				}
+			}).start();
+
 			
 		} else {
 			//Need to implement an obstacle correction program

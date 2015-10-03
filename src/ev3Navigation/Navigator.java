@@ -3,7 +3,7 @@ package ev3Navigation;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import ev3Navigation.Odometer;
 
-public class Navigator {
+public class Navigator{
 
 	private Odometer odometer;
 	private EV3LargeRegulatedMotor leftMotor;
@@ -73,13 +73,13 @@ public class Navigator {
 		//negative minimum rotation: 0>theta>=-¹
 		//for the case that theta=¹ or -¹ it doesn't matter which way it turns
 		
-		while(deltaTheta<PI||deltaTheta>-PI){
-			if(deltaTheta<PI) deltaTheta-=(2*PI);
-			else if(deltaTheta>-PI) deltaTheta+=(2*PI);
+		while(deltaTheta>PI||deltaTheta<-PI){
+			if(deltaTheta>PI) deltaTheta-=(2*PI);
+			else if(deltaTheta<-PI) deltaTheta+=(2*PI);
 		}
 		
 		int wheelTheta = (int)(deltaTheta*trackRadius/wheelRadius);
-		turnMotors(wheelTheta, -wheelTheta);
+		turnMotors(wheelTheta, -1*wheelTheta);
 		isNavigating=false;
 	}
 	
@@ -87,8 +87,8 @@ public class Navigator {
 	private void turnMotors(int left, int right){
 		leftMotor.flt();
 		rightMotor.flt();
-		leftMotor.rotate(left, true);
-		rightMotor.rotate(right);
+		leftMotor.rotate((int)Math.toDegrees(left), true);
+		rightMotor.rotate((int)Math.toDegrees(right));
 	}
 	
 	public boolean isNavigating(){
