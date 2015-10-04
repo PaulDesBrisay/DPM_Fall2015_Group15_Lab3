@@ -15,9 +15,7 @@ public class Odometer extends Thread {
 	private double lastTrachoLeft=0, lastTrachoRight=0;
 	private double wheelRadius, botRadius;
 	
-	//motors to get the tracho readings
-	private EV3LargeRegulatedMotor leftMotor;
-	private EV3LargeRegulatedMotor rightMotor;
+	MotorController motorControl;
 
 	public Odometer(){
 		this.x = 0.0;
@@ -26,18 +24,17 @@ public class Odometer extends Thread {
 		lock = new Object(); 
 	}
 
-	public Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
+	public Odometer(MotorController motorControl,
 			double wheelRadius, double botRadius) {
-		this.leftMotor = leftMotor;
-		this.rightMotor = rightMotor;
-		lastTrachoLeft = this.leftMotor.getTachoCount();
-		lastTrachoRight = this.rightMotor.getTachoCount();
+		this.motorControl=motorControl;
+		lastTrachoLeft = this.motorControl.getTacho()[0];
+		lastTrachoRight = this.motorControl.getTacho()[1];
 		this.wheelRadius = wheelRadius;
 		this.botRadius=botRadius;
-		x = 0.0;
-		y = 0.0;
-		theta = 0.0;
 		lock = new Object();
+		setX(0.0);
+		setY(0.0);
+		setTheta(0.0);
 	}
 
 	//change this to run on a timer
@@ -60,8 +57,8 @@ public class Odometer extends Thread {
 			updateStart = System.currentTimeMillis();
 			
 			//get tracho readings
-			currentTrachoLeft = leftMotor.getTachoCount();
-			currentTrachoRight=rightMotor.getTachoCount();
+			currentTrachoLeft = motorControl.getTacho()[0];
+			currentTrachoRight=motorControl.getTacho()[1];
 			
 			//compute deltaTrachos
 			double deltaTrachoLeft = currentTrachoLeft - this.lastTrachoLeft,

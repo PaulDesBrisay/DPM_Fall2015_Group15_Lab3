@@ -8,29 +8,23 @@ import lejos.robotics.SampleProvider;
 
 public class ObstacleAvoider extends Thread {
 	
-	private EV3LargeRegulatedMotor leftMotor;
-	private EV3LargeRegulatedMotor rightMotor;
-	
 	private EV3UltrasonicSensor usSensor = new EV3UltrasonicSensor(LocalEV3.get().getPort("S1"));
+	
+	private MotorController motorControl;
 	
 	private boolean seeWall=false;
 	private SampleProvider usDistance;
-	private int motorSpeed;
+	
 	
 	//constants
 	private static final int CHECK_PERIOD=25,
-			WALL_DIST = 30, 
-			fastMotorSpeed=450, 
-			slowMotorSpeed =30,
+			WALL_DIST = 20, 
+			fastMotorSpeed=300, 
+			slowMotorSpeed =50,
 			bufferZone = 4;
 	
-	public ObstacleAvoider(EV3LargeRegulatedMotor leftMotor, 
-			EV3LargeRegulatedMotor rightMotor, int motorSpeed){
-		this.leftMotor=leftMotor;
-		this.rightMotor=rightMotor;
-		this.motorSpeed = motorSpeed;
-		rightMotor.flt();
-		leftMotor.flt();
+	public ObstacleAvoider(MotorController motorControl){
+		this.motorControl=motorControl;
 		usDistance = usSensor.getMode("Distance");
 		
 	}
@@ -46,28 +40,25 @@ public class ObstacleAvoider extends Thread {
 			//if it is far from the obstacle assume no obstacle; run normal program
 			if(distance>WALL_DIST+2*bufferZone){
 				seeWall=false;
-				leftMotor.setSpeed(motorSpeed);         
-	            rightMotor.setSpeed((int) (motorSpeed) );
+				motorControl.resetSpeed();
 			}
-			else if(distance>WALL_DIST+bufferZone){
+			else if(distance>WALL_DIST&&distance<WALL_DIST+2*bufferZone){
 				seeWall=true;
-				rightMotor.setSpeed((int)(fastMotorSpeed));         
-	            leftMotor.setSpeed((int) (slowMotorSpeed) );
+				motorControl.setLeftMotorSpeed(slowMotorSpeed);
+				motorControl.setRightMotorSpeed(fastMotorSpeed);
 			}
 			else if(distance>WALL_DIST-bufferZone && distance<WALL_DIST+bufferZone){
 				seeWall=true;
-				leftMotor.setSpeed(motorSpeed);         
-	            rightMotor.setSpeed((int) (motorSpeed) );
+				motorControl.resetSpeed();
 			}
 			else{
 				seeWall=true;
-				leftMotor.setSpeed((int)(fastMotorSpeed));         
-	            rightMotor.setSpeed((int) (slowMotorSpeed) );
+				motorControl.setLeftMotorSpeed(fastMotorSpeed);
+				motorControl.setRightMotorSpeed(slowMotorSpeed);
 			}
 			
 			if(seeWall){
-				leftMotor.forward();
-				rightMotor.forward();
+				motorControl.forward();
 			}
 			
 			checkEnd =System.currentTimeMillis();
@@ -75,7 +66,6 @@ public class ObstacleAvoider extends Thread {
 				try {
 					Thread.sleep(CHECK_PERIOD - (checkEnd - checkStart));
 				} catch (InterruptedException e) {
-					// Should be no interruptions
 				}
 			}
 		}

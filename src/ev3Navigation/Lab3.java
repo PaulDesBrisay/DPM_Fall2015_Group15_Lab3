@@ -29,16 +29,15 @@ public class Lab3 {
 		int buttonChoice;
 		// some objects that need to be instantiated
 		final TextLCD t = LocalEV3.get().getTextLCD();
-		leftMotor.resetTachoCount();
-		rightMotor.resetTachoCount();
-		rightMotor.setAcceleration(motorAcceleration);
-		leftMotor.setAcceleration(motorAcceleration);
 		
-	    Odometer odometer = new Odometer(leftMotor, rightMotor,
+		MotorController mControl = new MotorController(leftMotor, rightMotor, 
+				motorSpeed, motorAcceleration);
+		
+	    Odometer odometer = new Odometer(mControl,
 				WHEEL_RADIUS, TRACK);
-	    ObstacleAvoider avoider = new ObstacleAvoider(leftMotor, rightMotor, motorSpeed);
-	    final Navigator navigator = new Navigator(odometer, leftMotor, rightMotor,
-	    		WHEEL_RADIUS, TRACK, motorSpeed, avoider);
+	   final ObstacleAvoider avoider = new ObstacleAvoider(mControl);
+	    final Navigator navigator = new Navigator(odometer,
+	    		WHEEL_RADIUS, TRACK, avoider, mControl);
 	
 		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t);
 		
@@ -64,10 +63,10 @@ public class Lab3 {
 		if (buttonChoice == Button.ID_LEFT) {
 			(new Thread() {
 				public void run() {
-					navigator.travelTo(60, 30);
-					navigator.travelTo(30, 30);
-					navigator.travelTo(30, 60);
-					navigator.travelTo(60, 0);
+					navigator.run(new double[][]{new double[]{60.0,30.0},
+							new double[]{30.0,30.0},
+							new double[]{30.0,60.0},
+							new double[]{60.0,0.0}});
 				}
 			}).start();
 
@@ -75,11 +74,12 @@ public class Lab3 {
 		} else {
 			//Need to implement an obstacle correction program
 			//similar to wall follower
-			avoider.run();
+			
 			(new Thread() {
 				public void run() {
-					navigator.travelTo(0, 60);
-					navigator.travelTo(60, 0);
+					navigator.run(new double[][]{new double[]{0.0,60.0},
+							new double[]{60.0,0.0}});
+					avoider.run();
 				}
 			}).start();
 			
