@@ -72,8 +72,6 @@ public class Lab3 {
 
 			
 		} else {
-			//Need to implement an obstacle correction program
-			//similar to wall follower
 			
 			(new Thread() {
 				public void run() {

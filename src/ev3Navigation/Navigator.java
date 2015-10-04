@@ -22,7 +22,7 @@ public class Navigator extends Thread{
 	//constants
 	private final double PI = Math.PI;
 	private static final int TRAVEL_PERIOD = 100, 
-			TARGET_BUFFER=3;
+			TARGET_BUFFER=2;
 	
 	
 	//constructor
@@ -48,7 +48,7 @@ public class Navigator extends Thread{
 		sleep(TRAVEL_PERIOD);
 		
 		double deltaX=x-odometer.getX(), deltaY=y-odometer.getY(); 
-		double newAngle= Math.atan(deltaX/deltaY);
+		double newAngle= calculateAngle(deltaX,deltaY);
 		turnTo(newAngle);
 		isNavigating=true;
 		//travel until the robot arrives at it's destination
@@ -61,7 +61,7 @@ public class Navigator extends Thread{
 			if(!avoider.getSeeWall()){
 				deltaX=x-odometer.getX();
 				deltaY=y-odometer.getY(); 
-				newAngle= Math.atan(deltaX/deltaY);
+				newAngle= calculateAngle(deltaX,deltaY);
 				if(Math.abs(this.oldTheta-newAngle)>(PI/18)&&(deltaX>TARGET_BUFFER&&deltaY>TARGET_BUFFER)){
 					turnTo(newAngle);
 					//because turnTo sets isNavigating to FALSE
@@ -109,6 +109,12 @@ public class Navigator extends Thread{
 		motorControl.turnRad(wheelTheta, -wheelTheta);
 		
 		isNavigating=false;
+	}
+	
+	private double calculateAngle(double x, double y){
+		double newAngle=Math.atan(x/y);
+		if(x<0)newAngle+=PI;
+		return newAngle;
 	}
 	
 	private void sleep(int time){
