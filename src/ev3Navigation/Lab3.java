@@ -19,11 +19,11 @@ public class Lab3 {
 	// Right motor connected to output D
 	private static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 	private static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
-	private static final EV3ColorSensor sensor = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
 
 	// Constants
 	public static final double WHEEL_RADIUS = 2.2;
 	public static final double TRACK = 5.73;
+	public static final int motorSpeed =200, motorAcceleration=1500;;
 
 	public static void main(String[] args) {
 		int buttonChoice;
@@ -31,11 +31,14 @@ public class Lab3 {
 		final TextLCD t = LocalEV3.get().getTextLCD();
 		leftMotor.resetTachoCount();
 		rightMotor.resetTachoCount();
+		rightMotor.setAcceleration(motorAcceleration);
+		leftMotor.setAcceleration(motorAcceleration);
 		
 	    Odometer odometer = new Odometer(leftMotor, rightMotor,
 				WHEEL_RADIUS, TRACK);
+	    ObstacleAvoider avoider = new ObstacleAvoider(leftMotor, rightMotor, motorSpeed);
 	    final Navigator navigator = new Navigator(odometer, leftMotor, rightMotor,
-	    		WHEEL_RADIUS, TRACK);
+	    		WHEEL_RADIUS, TRACK, motorSpeed, avoider);
 	
 		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t);
 		
@@ -72,9 +75,14 @@ public class Lab3 {
 		} else {
 			//Need to implement an obstacle correction program
 			//similar to wall follower
-			navigator.travelTo(0, 60);
-			navigator.travelTo(60, 0);
-
+			avoider.run();
+			(new Thread() {
+				public void run() {
+					navigator.travelTo(0, 60);
+					navigator.travelTo(60, 0);
+				}
+			}).start();
+			
 		}
 		
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
