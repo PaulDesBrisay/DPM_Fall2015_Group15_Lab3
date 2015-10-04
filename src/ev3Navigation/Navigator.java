@@ -12,7 +12,8 @@ public class Navigator{
 	private double trackRadius, wheelRadius;
 	
 	private static final int motorSpeed = 200;
-	private static final int motorAcceleration = 2000;
+	private static final int motorAcceleration = 1500;
+	private static final int TRAVEL_PERIOD = 100;
 	
 	
 	//for isNavigating method
@@ -40,23 +41,35 @@ public class Navigator{
 	}
 	
 	public void travelTo(double x, double y){
-		double deltaX=x-odometer.getX(), deltaY=y-odometer.getY();
-		turnTo(Math.atan(deltaX/deltaY));
-		isNavigating=true;
-		
-		//wheel rotation= travel distance/wheel radius
-		//travel distance = Ã(x^2+y^2)
-		double wheelTheta = Math.sqrt(Math.pow(deltaX, 2)
-				+Math.pow(deltaY, 2))/wheelRadius;
+		long travelStart, travelEnd;
+		while(Math.abs(x-odometer.getX())>2 || Math.abs(y-odometer.getY())>2){
+			
+			travelStart = System.currentTimeMillis();
+			
+			double deltaX=x-odometer.getX(), deltaY=y-odometer.getY();
+			turnTo(Math.atan(deltaX/deltaY));
+			//because turnTo sets isNavigating to FALSE
+			isNavigating=true;
+			
+			//wheel rotation= travel distance/wheel radius
+			//travel distance = Ã(x^2+y^2)
+			double wheelTheta = Math.sqrt(Math.pow(deltaX, 2)
+					+Math.pow(deltaY, 2))/wheelRadius;
+	
+			leftMotor.forward();
+			rightMotor.forward();
+			//sleep the thread
+			travelEnd = System.currentTimeMillis();
+			if (travelEnd - travelStart < TRAVEL_PERIOD) {
+				try {
+					Thread.sleep(TRAVEL_PERIOD - (travelEnd - travelStart));
+				} catch (InterruptedException e) {
+					// there is nothing to be done here because it is not
+					// expected that OdometryDisplay will be interrupted
+					// by another thread
+				}
+			}
 
-		turnMotors(wheelTheta, wheelTheta);
-		
-		//Will only call after wheels are done rotating due to rightMotor blocking
-		//Ensures that the robot will go to coordinates with a range of 3
-		//range is to avoid oscillations
-		// Useful if the robot has to avoid an obstacle in it's path
-		if(Math.abs(x-odometer.getX())>3 || Math.abs(y-odometer.getY())>3){
-			travelTo(x, y);
 		}
 		isNavigating=false;
 	}
@@ -81,20 +94,19 @@ public class Navigator{
 		
 		
 		double wheelTheta = (deltaTheta*trackRadius)/wheelRadius;
-		turnMotors(wheelTheta, -wheelTheta);
-		/*leftMotor.flt();
-		rightMotor.flt();
+		
+		
+		
 		leftMotor.rotate((int)Math.toDegrees(wheelTheta), true);
 		rightMotor.rotate(-(int)Math.toDegrees(wheelTheta));
-		System.out.println("angle is "+wheelTheta);*/
+		
+		System.out.println("angle is "+wheelTheta);
 		isNavigating=false;
 	}
 	
 	//method to turn motors x and y degrees
 	private void turnMotors(double left, double right){
-		//leftMotor.flt();
-		//rightMotor.flt();
-		//System.out.println("The angle is "+ (int)Math.toDegrees(right));
+
 		leftMotor.rotate((int)Math.toDegrees(left), true);
 		rightMotor.rotate((int)Math.toDegrees(right));
 	}
