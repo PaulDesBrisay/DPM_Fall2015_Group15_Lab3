@@ -120,7 +120,7 @@ public class Odometer extends Thread {
 		//positive theta is to the left of the bot
 		//using angle rotated = angle of one wheel's arclength
 		//System.out.println("The Theta Value is" + (deltaRight-deltaLeft)*wheelRadius/(2*botRadius));
-		return ((deltaLeft-deltaRight)*wheelRadius/(2*botRadius));
+		return ((deltaRight-deltaLeft)*wheelRadius/(2*botRadius));
 	}
 
 	
@@ -136,7 +136,7 @@ public class Odometer extends Thread {
 			if (update[1])
 				position[1] = y;
 			if (update[2])
-				position[2] = theta;
+				position[2] = Math.toDegrees(theta);
 		}
 	}
 

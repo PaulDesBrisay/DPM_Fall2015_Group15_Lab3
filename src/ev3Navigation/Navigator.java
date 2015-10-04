@@ -24,7 +24,7 @@ public class Navigator{
 	
 	//constructor
 	public Navigator(Odometer odometer, EV3LargeRegulatedMotor leftMotor, 
-			EV3LargeRegulatedMotor rightMotor, double trackRadius, double wheelRadius){
+			EV3LargeRegulatedMotor rightMotor, double wheelRadius, double trackRadius){
 		this.odometer=odometer;
 		this.leftMotor=leftMotor;
 		this.rightMotor=rightMotor;
@@ -46,15 +46,16 @@ public class Navigator{
 		
 		//wheel rotation= travel distance/wheel radius
 		//travel distance = Ã(x^2+y^2)
-		int wheelTheta = (int)(Math.sqrt(Math.pow(deltaX, 2)
-				+Math.pow(deltaY, 2))/wheelRadius);
+		double wheelTheta = Math.sqrt(Math.pow(deltaX, 2)
+				+Math.pow(deltaY, 2))/wheelRadius;
+
 		turnMotors(wheelTheta, wheelTheta);
 		
 		//Will only call after wheels are done rotating due to rightMotor blocking
 		//Ensures that the robot will go to coordinates with a range of 3
 		//range is to avoid oscillations
 		// Useful if the robot has to avoid an obstacle in it's path
-		if(Math.abs(x-odometer.getX())<3 || Math.abs(y-odometer.getY())<3){
+		if(Math.abs(x-odometer.getX())>3 || Math.abs(y-odometer.getY())>3){
 			travelTo(x, y);
 		}
 		isNavigating=false;
@@ -78,15 +79,22 @@ public class Navigator{
 			else if(deltaTheta<-PI) deltaTheta+=(2*PI);
 		}
 		
-		int wheelTheta = (int)(deltaTheta*trackRadius/wheelRadius);
-		turnMotors(wheelTheta, -1*wheelTheta);
+		
+		double wheelTheta = (deltaTheta*trackRadius)/wheelRadius;
+		turnMotors(wheelTheta, -wheelTheta);
+		/*leftMotor.flt();
+		rightMotor.flt();
+		leftMotor.rotate((int)Math.toDegrees(wheelTheta), true);
+		rightMotor.rotate(-(int)Math.toDegrees(wheelTheta));
+		System.out.println("angle is "+wheelTheta);*/
 		isNavigating=false;
 	}
 	
 	//method to turn motors x and y degrees
-	private void turnMotors(int left, int right){
-		leftMotor.flt();
-		rightMotor.flt();
+	private void turnMotors(double left, double right){
+		//leftMotor.flt();
+		//rightMotor.flt();
+		//System.out.println("The angle is "+ (int)Math.toDegrees(right));
 		leftMotor.rotate((int)Math.toDegrees(left), true);
 		rightMotor.rotate((int)Math.toDegrees(right));
 	}
