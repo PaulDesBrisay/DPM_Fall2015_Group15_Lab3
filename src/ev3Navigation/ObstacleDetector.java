@@ -6,7 +6,7 @@ import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.port.Port;
 import lejos.robotics.SampleProvider;
 
-public class ObstacleAvoider extends Thread {
+public class ObstacleDetector extends Thread {
 	
 	private EV3UltrasonicSensor usSensor = new EV3UltrasonicSensor(LocalEV3.get().getPort("S1"));
 	
@@ -18,12 +18,9 @@ public class ObstacleAvoider extends Thread {
 	
 	//constants
 	private static final int CHECK_PERIOD=25,
-			WALL_DIST = 20, 
-			fastMotorSpeed=300, 
-			slowMotorSpeed =50,
-			bufferZone = 4;
+			WALL_DIST = 25;
 	
-	public ObstacleAvoider(MotorController motorControl){
+	public ObstacleDetector(MotorController motorControl){
 		this.motorControl=motorControl;
 		usDistance = usSensor.getMode("Distance");
 		
@@ -35,31 +32,26 @@ public class ObstacleAvoider extends Thread {
 		long checkStart, checkEnd;
 		while(true){
 			checkStart=System.currentTimeMillis();
-			usSensor.fetchSample(usData,0);							// acquire data
+			usSensor.fetchSample(usData,0);
 			distance=(int)(usData[0]*100.0);
-			//if it is far from the obstacle assume no obstacle; run normal program
-			if(distance>WALL_DIST+2*bufferZone){
-				seeWall=false;
-				motorControl.resetSpeed();
-			}
-			else if(distance>WALL_DIST&&distance<WALL_DIST+2*bufferZone){
-				seeWall=true;
-				motorControl.setLeftMotorSpeed(slowMotorSpeed);
-				motorControl.setRightMotorSpeed(fastMotorSpeed);
-			}
-			else if(distance>WALL_DIST-bufferZone && distance<WALL_DIST+bufferZone){
-				seeWall=true;
-				motorControl.resetSpeed();
-			}
-			else{
-				seeWall=true;
-				motorControl.setLeftMotorSpeed(fastMotorSpeed);
-				motorControl.setRightMotorSpeed(slowMotorSpeed);
-			}
 			
-			if(seeWall){
-				motorControl.forward();
+			//can add a filter here
+			//also add methods to get distance 
+			//so this class has the only interaction with the US
+			
+			//check if distance<buffer
+			//if so, set boolean to true
+			//if it's the first time, set flt motors
+			
+			if(distance<WALL_DIST){
+				setSeeWall(true);
+				//longer sleep to ensure navigator thread avoider is triggered
+				try {
+					Thread.sleep(3*CHECK_PERIOD);
+				} catch (InterruptedException e) {
+				}
 			}
+			else setSeeWall(false);
 			
 			checkEnd =System.currentTimeMillis();
 			if (checkEnd - checkStart < CHECK_PERIOD) {
@@ -71,7 +63,13 @@ public class ObstacleAvoider extends Thread {
 		}
 	}
 	
-	
+	private void setSeeWall(boolean bool){
+		if(seeWall==bool) return;
+		else{
+			if(bool) motorControl.fltBoth();
+			seeWall=bool;
+		}
+	}
 	
 	public boolean getSeeWall(){
 		return seeWall;

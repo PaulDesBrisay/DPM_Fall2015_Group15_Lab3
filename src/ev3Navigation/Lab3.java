@@ -35,7 +35,7 @@ public class Lab3 {
 		
 	    Odometer odometer = new Odometer(mControl,
 				WHEEL_RADIUS, TRACK);
-	   final ObstacleAvoider avoider = new ObstacleAvoider(mControl);
+	   final ObstacleDetector avoider = new ObstacleDetector(mControl);
 	    final Navigator navigator = new Navigator(odometer,
 	    		WHEEL_RADIUS, TRACK, avoider, mControl);
 	

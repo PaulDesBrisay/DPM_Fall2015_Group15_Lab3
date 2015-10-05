@@ -11,29 +11,32 @@ public class Navigator extends Thread{
 	
 	private MotorController motorControl;
 
-	private ObstacleAvoider avoider;
+	private ObstacleDetector avoider;
 	
 	//for isNavigating method
 	private boolean isNavigating =false;
 	
 	//to avoid constant oscillations
-	private double oldTheta=0;
+	//plus "constants" to be calculated in the constructor using TRACK and wheelRadius
+	private double oldTheta=0, nintyDegrees, angleOfTenCm;
 	
 	//constants
 	private final double PI = Math.PI;
 	private static final int TRAVEL_PERIOD = 100, 
-			TARGET_BUFFER=2;
+			TARGET_BUFFER=1;
 	
 	
 	//constructor
 	public Navigator(Odometer odometer, 
 			double wheelRadius, double trackRadius,
-			ObstacleAvoider avoider, MotorController motorControl){
+			ObstacleDetector avoider, MotorController motorControl){
 		this.odometer=odometer;
 		this.trackRadius =trackRadius;
 		this.wheelRadius = wheelRadius;
 		this.avoider = avoider;
 		this.motorControl=motorControl;
+		this.nintyDegrees= (PI*trackRadius)/(wheelRadius*2);
+		this.angleOfTenCm= 10/wheelRadius;
 	}
 	
 	
@@ -62,7 +65,10 @@ public class Navigator extends Thread{
 				deltaX=x-odometer.getX();
 				deltaY=y-odometer.getY(); 
 				newAngle= calculateAngle(deltaX,deltaY);
-				if(Math.abs(this.oldTheta-newAngle)>(PI/18)&&(deltaX>TARGET_BUFFER&&deltaY>TARGET_BUFFER)){
+				//to ensure there is not a constant angle update,
+				//while allowing an angle update after avoiding an obstacle
+				if(Math.abs(this.oldTheta-newAngle)>(PI/18)
+						&&(deltaX>TARGET_BUFFER&&deltaY>TARGET_BUFFER)){
 					turnTo(newAngle);
 					//because turnTo sets isNavigating to FALSE
 					isNavigating=true;
@@ -71,6 +77,9 @@ public class Navigator extends Thread{
 				motorControl.resetSpeed();
 				motorControl.forward();
 			}
+			
+			//robot sees obstacle->instigate avoider method
+			else avoidObstacle();
 			//sleep Thread
 			travelEnd = System.currentTimeMillis();
 			if (travelEnd - travelStart < TRAVEL_PERIOD) {
@@ -121,6 +130,17 @@ public class Navigator extends Thread{
 		try {
 			Thread.sleep(time);
 		} catch (InterruptedException e) {}
+	}
+
+	private void avoidObstacle(){
+		motorControl.turnRad(this.nintyDegrees, -this.nintyDegrees);
+		motorControl.turnRad(angleOfTenCm, angleOfTenCm);
+		//turn 90û --> make a turn x degrees method?
+		//move x (10? 20?) cm --> make a rotate x cm method?
+		//return
+		
+		//meanwhile the block see-er should no longer see the block
+		//and the robot will therefore resume it's normal by recalculating the direction
 	}
 	
 	public boolean isNavigating(){
